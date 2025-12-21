@@ -1,0 +1,127 @@
+# free_rased
+اربح رصيدا مجانيا بمناسبة راس السنة
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>free Rseed</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    margin:0;
+    font-family: Tahoma, Arial;
+    background:#f2f4f8;
+}
+.container{
+    max-width:420px;
+    margin:auto;
+    padding:15px;
+}
+header{
+    background:#2e7d32;
+    color:#fff;
+    text-align:center;
+    padding:15px;
+    border-radius:10px;
+    font-size:22px;
+    font-weight:bold;
+}
+.note{
+    background:#fff3cd;
+    color:#856404;
+    padding:12px;
+    margin:15px 0;
+    border-radius:8px;
+    font-size:14px;
+    text-align:center;
+}
+.task{
+    background:#fff;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:10px;
+    box-shadow:0 2px 5px rgba(0,0,0,.1);
+}
+.task h3{
+    margin:0 0 8px 0;
+    font-size:16px;
+}
+.task button{
+    display:block;
+    width:100%;
+    background:#1976d2;
+    color:#fff;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
+}
+.task button:hover{
+    background:#0d47a1;
+}
+footer{
+    text-align:center;
+    font-size:12px;
+    color:#777;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<header>free Rseed</header>
+
+<div class="note">
+📢 ملاحظة: بعد إكمال المهام سيصلك الرصيد تلقائيًا وبسعر أكبر من <b>1000ج</b>
+</div>
+
+<div class="task">
+<h3>1️⃣ شير المنشور مع أصدقائك</h3>
+<button onclick="shareWhatsApp()">إكمال المهمة</button>
+</div>
+
+<div class="task">
+<h3>2️⃣ متابعة القناة على تيك توك</h3>
+<button onclick="openLink('https://tiktok.com/@abhero_ff')">فتح القناة</button>
+</div>
+
+<div class="task">
+<h3>3️⃣ الاتصال بـ VPN أمريكي</h3>
+<button onclick="vpnAlert()">تم التفعيل</button>
+</div>
+
+<div class="task">
+<h3>4️⃣ تنزيل التطبيق</h3>
+<button onclick="openLink('https://singingfiles.com/show.php?l=0&u=2475574&id=71658')">
+تنزيل التطبيق
+</button>
+</div>
+
+<footer>
+© 2025 free Rseed
+</footer>
+
+</div>
+
+<script>
+function shareWhatsApp(){
+    const text = "جرب موقع free Rseed واربح رصيد مجاني 💰";
+    const url = "https://wa.me/?text=" + encodeURIComponent(text);
+    window.open(url, "_blank");
+}
+
+function openLink(url){
+    window.open(url, "_blank");
+}
+
+function vpnAlert(){
+    alert("⚠️ تأكد من الاتصال بـ VPN أمريكي قبل المتابعة");
+}
+</script>
+
+</body>
+</html>
