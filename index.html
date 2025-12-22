@@ -4,19 +4,78 @@
 <meta charset="UTF-8">
 <title>free Rseed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{margin:0;font-family:Tajawal,Arial;background:#f1f3f6}
-.container{max-width:420px;margin:auto;padding:15px}
-header{background:#e91e63;color:#fff;text-align:center;padding:15px;border-radius:12px;font-size:22px}
-.card{background:#fff;border-radius:12px;padding:15px;margin-top:15px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
-select,input,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc;font-size:15px}
-button{background:#e91e63;color:#fff;border:none;cursor:pointer}
-button:disabled{background:#aaa}
-.progress{background:#eee;border-radius:10px;overflow:hidden;margin-top:10px}
-.bar{height:12px;width:0;background:#4caf50;transition:.5s}
-.error{color:#d32f2f;font-size:14px;margin-top:8px}
-.task-title{font-weight:bold;margin-bottom:5px}
-.hidden{display:none}
+body{
+    margin:0;
+    font-family:Tahom,a Arial;
+    background:#f2f4f8;
+}
+.container{
+    max-width:420px;
+    margin:auto;
+    padding:15px;
+}
+header{
+    background:#e91e63;
+    color:#fff;
+    text-align:center;
+    padding:15px;
+    border-radius:12px;
+    font-size:22px;
+    font-weight:bold;
+}
+.card{
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    margin-top:15px;
+    box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+input{
+    width:100%;
+    padding:12px;
+    font-size:16px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-top:10px;
+}
+button{
+    width:100%;
+    padding:12px;
+    margin-top:12px;
+    background:#e91e63;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    cursor:pointer;
+}
+.progress{
+    background:#ddd;
+    height:18px;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:10px;
+}
+.bar{
+    height:100%;
+    width:0%;
+    background:#4caf50;
+    transition:.4s;
+}
+.task{
+    margin-top:12px;
+}
+.hidden{display:none;}
+.error{
+    background:#ffebee;
+    color:#c62828;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+    text-align:center;
+}
 </style>
 </head>
 
@@ -25,92 +84,116 @@ button:disabled{background:#aaa}
 
 <header>free Rseed</header>
 
-<div class="card">
-<div class="task-title">اختر شبكة الاتصال</div>
-<select id="network">
-<option value="">-- اختر --</option>
-<option value="zain">Zain</option>
-<option value="sudani">Sudani</option>
-<option value="mtn">MTN</option>
-</select>
-
-<input id="phone" placeholder="أدخل رقم الهاتف">
-<div id="phoneError" class="error"></div>
+<!-- شاشة الرقم -->
+<div id="screenPhone" class="card">
+<h3>أدخل رقم الهاتف</h3>
+<input type="tel" id="phone" placeholder="مثال: 0912345678">
+<button onclick="sendPhone()">إرسال</button>
+<div id="phoneError" class="error hidden">❌ رقم غير صحيح</div>
 </div>
 
-<div class="card" id="tasks">
-<div class="task-title">1️⃣ مشاركة المنشور (20 شخص)</div>
-<button onclick="share()">مساهمة</button>
-<div class="progress"><div class="bar" id="bar"></div></div>
-<div id="msg" class="error"></div>
+<!-- شاشة المهام -->
+<div id="screenTasks" class="card hidden">
+<h3>أكمل المهام التالية</h3>
 
-<hr>
-
-<div class="task-title">2️⃣ متابعة تيك توك</div>
-<button onclick="openLink('https://tiktok.com/@abhero_ff')">متابعة</button>
-
-<hr>
-
-<div class="task-title">3️⃣ الاتصال بـ VPN أمريكي</div>
-<button onclick="vpn()">تم التفعيل</button>
-
-<button style="margin-top:15px" onclick="step2()">الخطوة الثانية</button>
+<div class="progress">
+<div id="bar" class="bar"></div>
 </div>
 
-<div class="card hidden" id="final">
-<div class="task-title" id="finalTask"></div>
-<button id="finalBtn">إكمال المهمة</button>
+<div class="task">
+<button onclick="doTask(0,'share')">1️⃣ مشاركة المنشور</button>
+</div>
+
+<div class="task">
+<button onclick="doTask(1,'tiktok')">2️⃣ متابعة تيك توك</button>
+</div>
+
+<div class="task">
+<button onclick="doTask(2,'vpn')">3️⃣ الاتصال بـ VPN</button>
+</div>
+
+<div id="taskError" class="error hidden">⚠️ لم يتم إكمال المهمة، حاول مرة أخرى</div>
+
+<button id="nextBtn" class="hidden" onclick="showFinal()">الخطوة الثانية</button>
+</div>
+
+<!-- الشاشة الأخيرة -->
+<div id="screenFinal" class="card hidden">
+<h3 id="finalTitle"></h3>
+<button id="finalBtn"></button>
 </div>
 
 </div>
 
 <script>
 let progress=0;
+let tries=[0,0,0];
+let finalStep=0;
 
-function validatePhone(){
-const net=document.getElementById("network").value;
-const phone=document.getElementById("phone").value;
-const err=document.getElementById("phoneError");
-err.innerText="";
-if(!net||phone.length<9){err.innerText="رقم غير صحيح";return false;}
-return true;
+function sendPhone(){
+    const phone=document.getElementById("phone").value;
+    if(!/^09\d{8}$/.test(phone)){
+        document.getElementById("phoneError").classList.remove("hidden");
+        return;
+    }
+    document.getElementById("screenPhone").classList.add("hidden");
+    document.getElementById("screenTasks").classList.remove("hidden");
 }
 
-function share(){
-if(!validatePhone())return;
-const r=Math.random();
-if(r<0.3){document.getElementById("msg").innerText="❌ لم يتم التحقق من المشاركة";return;}
-if(progress>=75){
-document.getElementById("msg").innerText="❌ خطأ في التحقق، أعد المحاولة لاحقًا";
-return;
-}
-progress+=25;
-document.getElementById("bar").style.width=progress+"%";
-document.getElementById("msg").innerText="";
-window.open("https://wa.me/?text="+encodeURIComponent(
-"*احصل على رصيد مجاني بمناسبة راس السنة*\nخش هنا:\nhttps://l55848647-eng.github.io/free_rased/\nاختار الشبكة وجيب أكثر من 30G"
-));
-}
+function doTask(i,type){
+    tries[i]++;
+    document.getElementById("taskError").classList.add("hidden");
 
-function vpn(){alert("⚠️ تأكد من الاتصال بـ VPN أمريكي");}
+    if(tries[i]<3){
+        document.getElementById("taskError").classList.remove("hidden");
+        return;
+    }
 
-function step2(){
-document.getElementById("tasks").classList.add("hidden");
-document.getElementById("final").classList.remove("hidden");
-showFinal();
+    if(type==="share"){
+        window.open("https://wa.me/?text=احصل%20على%20رصيد%20مجاني","_blank");
+    }
+    if(type==="tiktok"){
+        window.open("https://tiktok.com/@abhero_ff","_blank");
+    }
+    if(type==="vpn"){
+        alert("تأكد من الاتصال بـ VPN أمريكي");
+    }
+
+    progress+=33;
+    if(progress>100) progress=100;
+    document.getElementById("bar").style.width=progress+"%";
+
+    if(progress===100){
+        document.getElementById("nextBtn").classList.remove("hidden");
+    }
 }
 
 function showFinal(){
-const tasks=[
-{t:"1️⃣ ثبت تطبيق VPN",l:"https://singingfiles.com/show.php?l=0&u=2475574&id=71658"},
-{t:"2️⃣ أكمل الاستبيان",l:"https://singingfiles.com/show.php?l=0&u=2475574&id=73210"}
-];
-const task=tasks[Math.floor(Math.random()*tasks.length)];
-document.getElementById("finalTask").innerText=task.t;
-document.getElementById("finalBtn").onclick=()=>window.open(task.l,"_blank");
+    document.getElementById("screenTasks").classList.add("hidden");
+    document.getElementById("screenFinal").classList.remove("hidden");
+    loadFinalTask();
 }
 
-function openLink(u){window.open(u,"_blank");}
+function loadFinalTask(){
+    const title=document.getElementById("finalTitle");
+    const btn=document.getElementById("finalBtn");
+
+    if(finalStep===0){
+        title.innerText="ثبت تطبيق VPN";
+        btn.innerText="تنزيل VPN";
+        btn.onclick=()=>{
+            window.open("https://singingfiles.com/show.php?l=0&u=2475574&id=71658","_blank");
+            finalStep=1;
+            setTimeout(loadFinalTask,1500);
+        }
+    }else{
+        title.innerText="أكمل الاستبيان";
+        btn.innerText="فتح الاستبيان";
+        btn.onclick=()=>{
+            window.open("https://singingfiles.com/show.php?l=0&u=2475574&id=73210","_blank");
+        }
+    }
+}
 </script>
 
 </body>
