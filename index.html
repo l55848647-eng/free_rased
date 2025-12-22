@@ -4,173 +4,114 @@
 <meta charset="UTF-8">
 <title>free Rseed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body{
-    margin:0;
-    font-family:Tajawal, Arial;
-    background:#f2f4f8;
-}
-.container{
-    max-width:420px;
-    margin:auto;
-    padding:12px;
-}
-.header-img{
-    background:linear-gradient(135deg,#ff5fa2,#ff8acb);
-    color:#fff;
-    padding:25px;
-    border-radius:12px;
-    text-align:center;
-}
-.header-img h1{
-    margin:0;
-    font-size:22px;
-}
-.note{
-    background:#e8f5e9;
-    color:#2e7d32;
-    padding:10px;
-    border-radius:8px;
-    margin:12px 0;
-    font-size:14px;
-}
-.card{
-    background:#fff;
-    padding:15px;
-    border-radius:12px;
-    box-shadow:0 4px 10px rgba(0,0,0,.1);
-}
-.progress-box{
-    margin:15px 0;
-}
-.progress{
-    width:100%;
-    height:16px;
-    background:#eee;
-    border-radius:10px;
-    overflow:hidden;
-}
-.progress span{
-    display:block;
-    height:100%;
-    width:0%;
-    background:#00c853;
-    transition:.5s;
-}
-.progress-text{
-    text-align:right;
-    font-size:13px;
-    margin-top:5px;
-}
-.btn{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    font-size:15px;
-    cursor:pointer;
-    margin-top:10px;
-}
-.btn-main{background:#e91e63;color:#fff;}
-.btn-blue{background:#1976d2;color:#fff;}
-.btn-green{background:#2e7d32;color:#fff;}
-.hidden{display:none;}
-.task{
-    margin-top:10px;
-}
-footer{
-    text-align:center;
-    font-size:12px;
-    color:#777;
-    margin:15px 0;
-}
+body{margin:0;font-family:Tajawal,Arial;background:#f1f3f6}
+.container{max-width:420px;margin:auto;padding:15px}
+header{background:#e91e63;color:#fff;text-align:center;padding:15px;border-radius:12px;font-size:22px}
+.card{background:#fff;border-radius:12px;padding:15px;margin-top:15px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
+select,input,button{width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc;font-size:15px}
+button{background:#e91e63;color:#fff;border:none;cursor:pointer}
+button:disabled{background:#aaa}
+.progress{background:#eee;border-radius:10px;overflow:hidden;margin-top:10px}
+.bar{height:12px;width:0;background:#4caf50;transition:.5s}
+.error{color:#d32f2f;font-size:14px;margin-top:8px}
+.task-title{font-weight:bold;margin-bottom:5px}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<!-- HEADER -->
-<div class="header-img">
-<h1>رصيد إنترنت مجانًا لجميع الشبكات</h1>
+<header>free Rseed</header>
+
+<div class="card">
+<div class="task-title">اختر شبكة الاتصال</div>
+<select id="network">
+<option value="">-- اختر --</option>
+<option value="zain">Zain</option>
+<option value="sudani">Sudani</option>
+<option value="mtn">MTN</option>
+</select>
+
+<input id="phone" placeholder="أدخل رقم الهاتف">
+<div id="phoneError" class="error"></div>
 </div>
 
-<div class="note">
-بعد التحقق، سيتم إرسال الرصيد تلقائيًا وبقيمة أكبر من <b>1000ج</b>
+<div class="card" id="tasks">
+<div class="task-title">1️⃣ مشاركة المنشور (20 شخص)</div>
+<button onclick="share()">مساهمة</button>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="msg" class="error"></div>
+
+<hr>
+
+<div class="task-title">2️⃣ متابعة تيك توك</div>
+<button onclick="openLink('https://tiktok.com/@abhero_ff')">متابعة</button>
+
+<hr>
+
+<div class="task-title">3️⃣ الاتصال بـ VPN أمريكي</div>
+<button onclick="vpn()">تم التفعيل</button>
+
+<button style="margin-top:15px" onclick="step2()">الخطوة الثانية</button>
 </div>
 
-<!-- SCREEN 1 -->
-<div id="screen1" class="card">
-<p>
-بعد التحقق من رقم هاتفك، تبين أنك لم تستفد بعد من العرض.
-</p>
-
-<div class="progress-box">
-<div class="progress">
-<span id="bar"></span>
+<div class="card hidden" id="final">
+<div class="task-title" id="finalTask"></div>
+<button id="finalBtn">إكمال المهمة</button>
 </div>
-<div class="progress-text" id="percent">0%</div>
-</div>
-
-<button class="btn btn-main" onclick="startShare()">مساهمة</button>
-</div>
-
-<!-- SCREEN 2 -->
-<div id="screen2" class="card hidden">
-<h3>تبقى خطوة واحدة</h3>
-
-<div class="task">
-<button class="btn btn-blue" onclick="vpnCheck()">الاتصال بـ VPN أمريكي</button>
-</div>
-
-<div class="task">
-<button class="btn btn-green" onclick="openTikTok()">متابعة تيك توك</button>
-</div>
-</div>
-
-<footer>© 2025 free Rseed</footer>
 
 </div>
 
 <script>
-let progress = 0;
+let progress=0;
 
-function updateProgress(val){
-    progress += val;
-    if(progress > 100) progress = 100;
-    document.getElementById("bar").style.width = progress+"%";
-    document.getElementById("percent").innerText = progress+"%";
+function validatePhone(){
+const net=document.getElementById("network").value;
+const phone=document.getElementById("phone").value;
+const err=document.getElementById("phoneError");
+err.innerText="";
+if(!net||phone.length<9){err.innerText="رقم غير صحيح";return false;}
+return true;
 }
 
-function startShare(){
-    const text = `*احصل على رصيد مجاني بمناسبة رأس السنة*
-خش هنا:
-https://l55848647-eng.github.io/free_rased/
-اختار شبكة الاتصال وجيب ما يصل إلى أكثر من 30G.`;
-
-    window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
-
-    alert("❌ لقد نقرت على زر المشاركة دون إكمال المشاركة مع أصدقائك");
-
-    updateProgress(65);
-
-    setTimeout(()=>{
-        document.getElementById("screen1").classList.add("hidden");
-        document.getElementById("screen2").classList.remove("hidden");
-    },1000);
+function share(){
+if(!validatePhone())return;
+const r=Math.random();
+if(r<0.3){document.getElementById("msg").innerText="❌ لم يتم التحقق من المشاركة";return;}
+if(progress>=75){
+document.getElementById("msg").innerText="❌ خطأ في التحقق، أعد المحاولة لاحقًا";
+return;
+}
+progress+=25;
+document.getElementById("bar").style.width=progress+"%";
+document.getElementById("msg").innerText="";
+window.open("https://wa.me/?text="+encodeURIComponent(
+"*احصل على رصيد مجاني بمناسبة راس السنة*\nخش هنا:\nhttps://l55848647-eng.github.io/free_rased/\nاختار الشبكة وجيب أكثر من 30G"
+));
 }
 
-function vpnCheck(){
-    alert("⚠️ لم يتم التحقق من VPN الأمريكي، يرجى المحاولة مرة أخرى");
+function vpn(){alert("⚠️ تأكد من الاتصال بـ VPN أمريكي");}
+
+function step2(){
+document.getElementById("tasks").classList.add("hidden");
+document.getElementById("final").classList.remove("hidden");
+showFinal();
 }
 
-function openTikTok(){
-    window.open("https://tiktok.com/@abhero_ff","_blank");
-    alert("❌ لم يتم تأكيد المتابعة، يرجى المحاولة مرة أخرى");
+function showFinal(){
+const tasks=[
+{t:"1️⃣ ثبت تطبيق VPN",l:"https://singingfiles.com/show.php?l=0&u=2475574&id=71658"},
+{t:"2️⃣ أكمل الاستبيان",l:"https://singingfiles.com/show.php?l=0&u=2475574&id=73210"}
+];
+const task=tasks[Math.floor(Math.random()*tasks.length)];
+document.getElementById("finalTask").innerText=task.t;
+document.getElementById("finalBtn").onclick=()=>window.open(task.l,"_blank");
 }
+
+function openLink(u){window.open(u,"_blank");}
 </script>
 
 </body>
-    </html>
+</html>
