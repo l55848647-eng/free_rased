@@ -4,106 +4,170 @@
 <meta charset="UTF-8">
 <title>free Rseed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-:root{
-  --pink:#e84b8a; --pink2:#ffb3cf; --bg:#f6f7fb; --card:#fff;
+body{
+    margin:0;
+    font-family: Tahoma, Arial;
+    background:#f3f5f9;
 }
-*{box-sizing:border-box;font-family:Tajawal,Arial}
-body{margin:0;background:var(--bg)}
-.container{max-width:420px;margin:auto}
+.container{
+    max-width:420px;
+    margin:auto;
+    background:#fff;
+    min-height:100vh;
+}
 .hero{
-  background:linear-gradient(135deg,var(--pink),var(--pink2));
-  color:#fff;padding:18px;border-radius:0 0 16px 16px;
-  display:flex;align-items:center;gap:12px
+    background:linear-gradient(135deg,#ff5fa2,#ff8ac9);
+    color:#fff;
+    padding:20px;
+    display:flex;
+    align-items:center;
+    gap:15px;
 }
-.hero h1{margin:0;font-size:20px}
-.card{background:var(--card);margin:12px;padding:14px;border-radius:14px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
-.note{color:#2f6}
+.hero img{
+    width:90px;
+}
+.hero h1{
+    font-size:20px;
+    margin:0;
+}
+.section{
+    padding:15px;
+}
 .input{
-  width:100%;padding:12px;border-radius:10px;border:1px solid #ddd;font-size:16px
+    width:100%;
+    padding:12px;
+    font-size:16px;
+    border:1px solid #ddd;
+    border-radius:8px;
 }
 .btn{
-  width:100%;padding:12px;border-radius:12px;border:none;
-  background:var(--pink);color:#fff;font-size:16px;cursor:pointer
+    width:100%;
+    margin-top:10px;
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#ff5fa2;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+}
+.task{
+    background:#f8f9fc;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+}
+.task h3{
+    font-size:15px;
+    margin:0 0 6px;
 }
 .progress{
-  height:14px;border-radius:10px;background:#eee;overflow:hidden;margin-top:10px
+    height:18px;
+    background:#eee;
+    border-radius:10px;
+    overflow:hidden;
 }
-.bar{height:100%;width:0;background:var(--pink)}
-.task{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
-.badge{background:#f1f1f1;border-radius:8px;padding:6px 10px;font-size:12px}
-.hidden{display:none}
-.small{font-size:12px;color:#777}
+.bar{
+    height:100%;
+    width:0%;
+    background:#ff5fa2;
+    transition:.4s;
+}
+.hidden{display:none;}
+.ok{color:green;font-weight:bold;}
+.error{
+    background:#ffe1e1;
+    color:#a00;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+    text-align:center;
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
-  <div class="hero">
-    <h1>رصيد إنترنت مجانًا</h1>
-  </div>
 
-  <!-- شاشة الرقم -->
-  <div id="screenPhone" class="card">
-    <p>أدخل رقم هاتفك للتحقق</p>
-    <input id="phone" class="input" placeholder="09xxxxxxxx">
-    <button class="btn" onclick="goTasks()">إرسال</button>
-    <p class="small">* نسخة عرض (Demo)</p>
-  </div>
+<!-- HERO -->
+<div class="hero">
+<img src="https://i.imgur.com/8Km9tLL.png">
+<h1>رصيد إنترنت مجانًا<br>لجميع الشبكات</h1>
+</div>
 
-  <!-- شاشة المهام -->
-  <div id="screenTasks" class="card hidden">
-    <p class="note">بعد إكمال الخطوات سيتم التحقق تلقائيًا</p>
+<!-- PHONE -->
+<div class="section" id="stepPhone">
+<p>أدخل رقم هاتفك للتحقق:</p>
+<input class="input" id="phone" placeholder="مثال: 09XXXXXXXX">
+<button class="btn" onclick="goTasks()">إرسال</button>
+</div>
 
-    <div class="task"><span>1) مشاركة عبر واتساب</span>
-      <button class="badge" onclick="openWA()">مساهمة</button>
-    </div>
-    <div class="task"><span>2) متابعة تيك توك</span>
-      <button class="badge" onclick="openLink('https://tiktok.com/@abhero_ff')">فتح</button>
-    </div>
-    <div class="task"><span>3) الاتصال بـ VPN</span>
-      <button class="badge" onclick="alert('يرجى التأكد من الاتصال')">تحقق</button>
-    </div>
+<!-- TASKS -->
+<div class="section hidden" id="stepTasks">
+<p>اتبع التعليمات التالية:</p>
 
-    <div class="progress"><div id="bar" class="bar"></div></div>
-    <button class="btn" onclick="nextStep()">الخطوة التالية</button>
-  </div>
+<div class="task">
+<h3>1️⃣ مشاركة الرابط على واتساب</h3>
+<button class="btn" onclick="doTask('share')">مساهمة</button>
+</div>
 
-  <!-- الشاشة الأخيرة -->
-  <div id="screenLast" class="card hidden">
-    <p>الخطوة الأخيرة</p>
-    <button class="btn" onclick="openLink('https://singingfiles.com/show.php?l=0&u=2475574&id=71658')">
-      تثبيت تطبيق VPN
-    </button>
-    <button class="btn" style="margin-top:8px"
-      onclick="openLink('https://singingfiles.com/show.php?l=0&u=2475574&id=73210')">
-      إكمال استبيان
-    </button>
-  </div>
+<div class="task">
+<h3>2️⃣ متابعة تيك توك</h3>
+<button class="btn" onclick="doTask('tiktok')">فتح</button>
+</div>
+
+<div class="task">
+<h3>3️⃣ الاتصال بـ VPN أمريكي</h3>
+<button class="btn" onclick="doTask('vpn')">تم</button>
+</div>
+
+<div class="progress"><div class="bar" id="bar"></div></div>
+
+<div id="msg"></div>
+
+<button class="btn hidden" id="verifyBtn" onclick="verify()">تحقق</button>
+</div>
+
 </div>
 
 <script>
-let progress=0;
+let tries=0, progress=0;
+
 function goTasks(){
-  const p=document.getElementById('phone').value;
-  if(p.length<9) return alert('رقم غير صحيح');
-  screenPhone.classList.add('hidden');
-  screenTasks.classList.remove('hidden');
+    let p=document.getElementById("phone").value;
+    if(!/^09\d{8}$/.test(p)){
+        alert("رقم غير صحيح");
+        return;
+    }
+    document.getElementById("stepPhone").classList.add("hidden");
+    document.getElementById("stepTasks").classList.remove("hidden");
 }
-function openWA(){
-  window.open('https://wa.me/?text=جرّب%20free%20Rseed','_blank');
-  inc(25);
+
+function doTask(type){
+    tries++;
+    if(tries<3){
+        showError("حدث خطأ، يرجى إعادة المحاولة");
+        return;
+    }
+    progress+=33;
+    document.getElementById("bar").style.width=progress+"%";
+    document.getElementById("msg").innerHTML="<p class='ok'>✔️ تم تنفيذ المهمة</p>";
+    if(progress>=99){
+        document.getElementById("verifyBtn").classList.remove("hidden");
+    }
 }
-function openLink(u){ window.open(u,'_blank'); inc(25); }
-function inc(v){
-  progress=Math.min(100,progress+v);
-  document.getElementById('bar').style.width=progress+'%';
+
+function showError(t){
+    document.getElementById("msg").innerHTML="<div class='error'>"+t+"</div>";
 }
-function nextStep(){
-  if(progress<75) return alert('جارٍ التحقق…');
-  screenTasks.classList.add('hidden');
-  screenLast.classList.remove('hidden');
+
+function verify(){
+    alert("✔️ تم التحقق بنجاح (محاكاة)");
 }
 </script>
+
 </body>
 </html>
