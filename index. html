@@ -8,116 +8,167 @@
 <style>
 body{
     margin:0;
-    font-family: Tahoma, Arial;
+    font-family:Tajawal, Arial;
     background:#f2f4f8;
 }
 .container{
     max-width:420px;
     margin:auto;
-    padding:15px;
+    padding:12px;
 }
-header{
-    background:#2e7d32;
+.header-img{
+    background:linear-gradient(135deg,#ff5fa2,#ff8acb);
     color:#fff;
+    padding:25px;
+    border-radius:12px;
     text-align:center;
-    padding:15px;
-    border-radius:10px;
+}
+.header-img h1{
+    margin:0;
     font-size:22px;
-    font-weight:bold;
 }
 .note{
-    background:#fff3cd;
-    color:#856404;
-    padding:12px;
-    margin:15px 0;
-    border-radius:8px;
-    font-size:14px;
-    text-align:center;
-}
-.task{
-    background:#fff;
-    padding:12px;
-    margin-bottom:10px;
-    border-radius:10px;
-    box-shadow:0 2px 5px rgba(0,0,0,.1);
-}
-.task h3{
-    margin:0 0 8px 0;
-    font-size:16px;
-}
-.task button{
-    display:block;
-    width:100%;
-    background:#1976d2;
-    color:#fff;
+    background:#e8f5e9;
+    color:#2e7d32;
     padding:10px;
-    border:none;
     border-radius:8px;
-    cursor:pointer;
-    font-size:15px;
+    margin:12px 0;
+    font-size:14px;
 }
-.task button:hover{
-    background:#0d47a1;
+.card{
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+.progress-box{
+    margin:15px 0;
+}
+.progress{
+    width:100%;
+    height:16px;
+    background:#eee;
+    border-radius:10px;
+    overflow:hidden;
+}
+.progress span{
+    display:block;
+    height:100%;
+    width:0%;
+    background:#00c853;
+    transition:.5s;
+}
+.progress-text{
+    text-align:right;
+    font-size:13px;
+    margin-top:5px;
+}
+.btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:10px;
+}
+.btn-main{background:#e91e63;color:#fff;}
+.btn-blue{background:#1976d2;color:#fff;}
+.btn-green{background:#2e7d32;color:#fff;}
+.hidden{display:none;}
+.task{
+    margin-top:10px;
 }
 footer{
     text-align:center;
     font-size:12px;
     color:#777;
-    margin-top:15px;
+    margin:15px 0;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<header>free Rseed</header>
+<!-- HEADER -->
+<div class="header-img">
+<h1>رصيد إنترنت مجانًا لجميع الشبكات</h1>
+</div>
 
 <div class="note">
-📢 ملاحظة: بعد إكمال المهام سيصلك الرصيد تلقائيًا وبسعر أكبر من <b>1000ج</b>
+بعد التحقق، سيتم إرسال الرصيد تلقائيًا وبقيمة أكبر من <b>1000ج</b>
+</div>
+
+<!-- SCREEN 1 -->
+<div id="screen1" class="card">
+<p>
+بعد التحقق من رقم هاتفك، تبين أنك لم تستفد بعد من العرض.
+</p>
+
+<div class="progress-box">
+<div class="progress">
+<span id="bar"></span>
+</div>
+<div class="progress-text" id="percent">0%</div>
+</div>
+
+<button class="btn btn-main" onclick="startShare()">مساهمة</button>
+</div>
+
+<!-- SCREEN 2 -->
+<div id="screen2" class="card hidden">
+<h3>تبقى خطوة واحدة</h3>
+
+<div class="task">
+<button class="btn btn-blue" onclick="vpnCheck()">الاتصال بـ VPN أمريكي</button>
 </div>
 
 <div class="task">
-<h3>1️⃣ شير المنشور مع أصدقائك</h3>
-<button onclick="shareWhatsApp()">إكمال المهمة</button>
+<button class="btn btn-green" onclick="openTikTok()">متابعة تيك توك</button>
+</div>
 </div>
 
-<div class="task">
-<h3>2️⃣ متابعة القناة على تيك توك</h3>
-<button onclick="openLink('https://tiktok.com/@abhero_ff')">فتح القناة</button>
-</div>
-
-<div class="task">
-<h3>3️⃣ الاتصال بـ VPN أمريكي</h3>
-<button onclick="vpnAlert()">تم التفعيل</button>
-</div>
-
-<div class="task">
-<h3>4️⃣ تنزيل التطبيق</h3>
-<button onclick="openLink('https://singingfiles.com/show.php?l=0&u=2475574&id=71658')">
-تنزيل التطبيق
-</button>
-</div>
-
-<footer>
-© 2025 free Rseed
-</footer>
+<footer>© 2025 free Rseed</footer>
 
 </div>
 
 <script>
-function shareWhatsApp(){
-    const text = "جرب موقع free Rseed واربح رصيد مجاني 💰";
-    const url = "https://wa.me/?text=" + encodeURIComponent(text);
-    window.open(url, "_blank");
+let progress = 0;
+
+function updateProgress(val){
+    progress += val;
+    if(progress > 100) progress = 100;
+    document.getElementById("bar").style.width = progress+"%";
+    document.getElementById("percent").innerText = progress+"%";
 }
 
-function openLink(url){
-    window.open(url, "_blank");
+function startShare(){
+    const text = `*احصل على رصيد مجاني بمناسبة رأس السنة*
+خش هنا:
+https://l55848647-eng.github.io/free_rased/
+اختار شبكة الاتصال وجيب ما يصل إلى أكثر من 30G.`;
+
+    window.open("https://wa.me/?text="+encodeURIComponent(text),"_blank");
+
+    alert("❌ لقد نقرت على زر المشاركة دون إكمال المشاركة مع أصدقائك");
+
+    updateProgress(65);
+
+    setTimeout(()=>{
+        document.getElementById("screen1").classList.add("hidden");
+        document.getElementById("screen2").classList.remove("hidden");
+    },1000);
 }
 
-function vpnAlert(){
-    alert("⚠️ تأكد من الاتصال بـ VPN أمريكي قبل المتابعة");
+function vpnCheck(){
+    alert("⚠️ لم يتم التحقق من VPN الأمريكي، يرجى المحاولة مرة أخرى");
+}
+
+function openTikTok(){
+    window.open("https://tiktok.com/@abhero_ff","_blank");
+    alert("❌ لم يتم تأكيد المتابعة، يرجى المحاولة مرة أخرى");
 }
 </script>
 
