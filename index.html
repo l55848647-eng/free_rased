@@ -2,172 +2,246 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>free Rseed</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>free Rseed</title>
 <style>
-body{
+body {
     margin:0;
-    font-family: Tahoma, Arial;
-    background:#f3f5f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
 }
-.container{
-    max-width:420px;
-    margin:auto;
-    background:#fff;
-    min-height:100vh;
+.container {
+    max-width: 480px;
+    margin: 20px auto;
+    padding: 15px;
 }
-.hero{
-    background:linear-gradient(135deg,#ff5fa2,#ff8ac9);
-    color:#fff;
-    padding:20px;
-    display:flex;
-    align-items:center;
-    gap:15px;
+.screen {
+    display: none;
 }
-.hero img{
-    width:90px;
+.screen.active {
+    display: block;
 }
-.hero h1{
-    font-size:20px;
-    margin:0;
+header {
+    background: #1e88e5;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
 }
-.section{
-    padding:15px;
+.note {
+    background: #fff3cd;
+    color: #856404;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 16px;
+    text-align: center;
+    margin-bottom: 15px;
+    cursor: pointer;
 }
-.input{
-    width:100%;
-    padding:12px;
-    font-size:16px;
-    border:1px solid #ddd;
-    border-radius:8px;
+button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: 0.3s;
 }
-.btn{
-    width:100%;
-    margin-top:10px;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    background:#ff5fa2;
-    color:#fff;
-    font-size:16px;
-    cursor:pointer;
+.red {background: #e53935; color: #fff;}
+.red:hover {background: #b71c1c;}
+.green {background: #43a047; color: #fff;}
+.green:hover {background: #2e7d32;}
+.progress-container {
+    background: #ddd;
+    border-radius: 12px;
+    margin: 10px 0;
+    height: 25px;
 }
-.task{
-    background:#f8f9fc;
-    border-radius:10px;
-    padding:12px;
-    margin-bottom:10px;
+.progress-bar {
+    background: #1e88e5;
+    width: 0%;
+    height: 100%;
+    border-radius: 12px;
+    text-align: center;
+    color: #fff;
+    line-height: 25px;
+    font-weight: bold;
+    transition: width 0.5s ease;
 }
-.task h3{
-    font-size:15px;
-    margin:0 0 6px;
-}
-.progress{
-    height:18px;
-    background:#eee;
-    border-radius:10px;
-    overflow:hidden;
-}
-.bar{
-    height:100%;
-    width:0%;
-    background:#ff5fa2;
-    transition:.4s;
-}
-.hidden{display:none;}
-.ok{color:green;font-weight:bold;}
-.error{
-    background:#ffe1e1;
-    color:#a00;
-    padding:10px;
-    border-radius:8px;
-    margin-top:10px;
-    text-align:center;
+input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
 
-<!-- HERO -->
-<div class="hero">
-<img src="https://i.imgur.com/8Km9tLL.png">
-<h1>رصيد إنترنت مجانًا<br>لجميع الشبكات</h1>
+<!-- الشاشة 1 -->
+<div id="screen1" class="screen active">
+<header>free Rseed</header>
+<div class="note" onclick="openLink('https://wa.me/249923262572')">
+اربح رصيد مجاني لكل الشبكات السودانية. (لم يصلني الرصيد)
+</div>
+<button class="red" onclick="nextScreen(2)">احصل على رصيد</button>
 </div>
 
-<!-- PHONE -->
-<div class="section" id="stepPhone">
-<p>أدخل رقم هاتفك للتحقق:</p>
-<input class="input" id="phone" placeholder="مثال: 09XXXXXXXX">
-<button class="btn" onclick="goTasks()">إرسال</button>
-</div>
-
-<!-- TASKS -->
-<div class="section hidden" id="stepTasks">
-<p>اتبع التعليمات التالية:</p>
+<!-- الشاشة 2 -->
+<div id="screen2" class="screen">
+<header>المهام الأساسية</header>
 
 <div class="task">
-<h3>1️⃣ مشاركة الرابط على واتساب</h3>
-<button class="btn" onclick="doTask('share')">مساهمة</button>
+<h3>1️⃣ مشاركة منشور على واتساب مع 20 شخص</h3>
+<button class="green" id="shareBtn">مساهمة</button>
+<div class="progress-container">
+<div id="progressBar" class="progress-bar">0%</div>
 </div>
-
-<div class="task">
-<h3>2️⃣ متابعة تيك توك</h3>
-<button class="btn" onclick="doTask('tiktok')">فتح</button>
+<p>⚠️ من المهم تشغيل VPN أمريكي</p>
 </div>
 
 <div class="task">
-<h3>3️⃣ الاتصال بـ VPN أمريكي</h3>
-<button class="btn" onclick="doTask('vpn')">تم</button>
+<h3>2️⃣ متابعة صفحة تيك توك</h3>
+<button class="green" id="followBtn">متابعة</button>
 </div>
 
-<div class="progress"><div class="bar" id="bar"></div></div>
+</div>
 
-<div id="msg"></div>
+<!-- الشاشة 3 -->
+<div id="screen3" class="screen">
+<header>المهام الإضافية</header>
 
-<button class="btn hidden" id="verifyBtn" onclick="verify()">تحقق</button>
+<div class="task">
+<h3 id="randomTaskTitle"></h3>
+<button class="green" id="randomTaskBtn">فتح المهمة</button>
+</div>
+<button class="red" id="verifyBtn">تحقق</button>
+</div>
+
+<!-- الشاشة 4 -->
+<div id="screen4" class="screen">
+<header>التحقق النهائي</header>
+<p>اكتب رقم هاتفك لاستلام الرصيد:</p>
+<input type="text" id="phoneInput" placeholder="رقم الهاتف">
+<button class="green" id="sendBtn">إرسال</button>
 </div>
 
 </div>
 
 <script>
-let tries=0, progress=0;
+/* وظيفة الانتقال بين الشاشات */
+function nextScreen(num){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen'+num).classList.add('active');
+}
 
-function goTasks(){
-    let p=document.getElementById("phone").value;
-    if(!/^09\d{8}$/.test(p)){
-        alert("رقم غير صحيح");
+/* الشاشة 2 - مهام المشاركة */
+let shareClicks = 0;
+const shareBtn = document.getElementById("shareBtn");
+const progressBar = document.getElementById("progressBar");
+shareBtn.addEventListener("click", function(){
+    shareClicks++;
+    if(shareClicks===1){
+        progressBar.style.width="25%";
+        progressBar.innerText="25%";
+        alert("تم الضغط على زر المشاركة. افتح واتساب لإكمال المهمة.");
+        openLink("https://wa.me/?text="+encodeURIComponent("*احصل على رصيد مجاني بمناسبة راس السنة*\nخش هنا: https://l55848647-eng.github.io/free_rased/\nاختار الشبكة وجيب أكثر من 30G"));
+    } else if(shareClicks===2){
+        alert("خطأ: لم تكمل هذه المهمة بعد.");
+    } else {
+        progressBar.style.width="50%";
+        progressBar.innerText="50%";
+        alert("تمت المهمة بنجاح.");
+        checkTasksComplete();
+    }
+});
+
+/* متابعة تيك توك */
+let followClicks = 0;
+const followBtn = document.getElementById("followBtn");
+followBtn.addEventListener("click", function(){
+    followClicks++;
+    if(followClicks < 3){
+        alert("خطأ: لم تكمل هذه المهمة بعد.");
+    } else {
+        alert("تمت متابعة القناة بنجاح.");
+        checkTasksComplete();
+    }
+});
+
+function checkTasksComplete(){
+    if(shareClicks>=3 && followClicks>=3){
+        nextScreen(3);
+        setupRandomTask();
+    }
+}
+
+/* الشاشة 3 - مهام عشوائية */
+const tasks = [
+    {title:"🌐 ثبت تطبيق VPN", url:"https://singingfiles.com/show.php?l=0&u=2475574&id=71658"},
+    {title:"📱 نزل التطبيق", url:"https://singingfiles.com/show.php?l=0&u=2475574&id=73805"},
+    {title:"📝 أكمل الاستبيان", url:"https://singingfiles.com/show.php?l=0&u=2475574&id=59763"}
+];
+let randomTaskIndex = 0;
+let randomTaskClicks = 0;
+const randomTaskTitle = document.getElementById("randomTaskTitle");
+const randomTaskBtn = document.getElementById("randomTaskBtn");
+const verifyBtn = document.getElementById("verifyBtn");
+
+function setupRandomTask(){
+    randomTaskIndex = Math.floor(Math.random()*tasks.length);
+    randomTaskTitle.innerText = tasks[randomTaskIndex].title;
+    randomTaskClicks = 0;
+}
+
+/* فتح المهمة العشوائية */
+randomTaskBtn.addEventListener("click", function(){
+    randomTaskClicks++;
+    if(randomTaskClicks<3){
+        alert("خطأ: لم تكمل هذه المهمة بعد.");
+    } else {
+        alert("تمت المهمة بنجاح.");
+    }
+});
+
+/* زر التحقق */
+let verifyClicks = 0;
+verifyBtn.addEventListener("click", function(){
+    verifyClicks++;
+    if(verifyClicks<3){
+        alert("خطأ: تحقق غير مكتمل.");
+    } else {
+        alert("تم التحقق بنجاح.");
+        nextScreen(4);
+    }
+});
+
+/* الشاشة 4 - إرسال الرقم */
+const sendBtn = document.getElementById("sendBtn");
+sendBtn.addEventListener("click", function(){
+    const phone = document.getElementById("phoneInput").value.trim();
+    if(phone===""){
+        alert("يرجى إدخال رقم الهاتف.");
         return;
     }
-    document.getElementById("stepPhone").classList.add("hidden");
-    document.getElementById("stepTasks").classList.remove("hidden");
-}
+    const message = "لقد اتم "+phone+" مهامه ويريد الرصيد. رابط المهمة: "+tasks[randomTaskIndex].url;
+    openLink("https://wa.me/249923262572?text="+encodeURIComponent(message));
+    alert("تم إرسال الرسالة بنجاح.");
+});
 
-function doTask(type){
-    tries++;
-    if(tries<3){
-        showError("حدث خطأ، يرجى إعادة المحاولة");
-        return;
-    }
-    progress+=33;
-    document.getElementById("bar").style.width=progress+"%";
-    document.getElementById("msg").innerHTML="<p class='ok'>✔️ تم تنفيذ المهمة</p>";
-    if(progress>=99){
-        document.getElementById("verifyBtn").classList.remove("hidden");
-    }
-}
-
-function showError(t){
-    document.getElementById("msg").innerHTML="<div class='error'>"+t+"</div>";
-}
-
-function verify(){
-    alert("✔️ تم التحقق بنجاح (محاكاة)");
+function openLink(url){
+    window.open(url,"_blank");
 }
 </script>
 
 </body>
-</html>
+    </html>
