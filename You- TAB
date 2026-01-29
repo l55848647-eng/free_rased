@@ -1,0 +1,344 @@
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, doc, onSnapshot, setDoc, updateDoc, 
+  increment, collection, getDocs, query, where, getDoc
+} from 'firebase/firestore';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { 
+  Youtube, PlusCircle, Layout, Coins, 
+  ExternalLink, AlertCircle, CheckCircle2, 
+  UserPlus, Gift, Trophy, Share2
+} from 'lucide-react';
+
+// Firebase Configuration
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'yt-exchange-referral-v1';
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [activeTab, setActiveTab] = useState('home');
+  const [earnSubTab, setEarnSubTab] = useState('yt'); // 'yt' or 'offers'
+  const [channels, setChannels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState({ text: '', type: '' });
+
+  // 1. Authentication & Profile Sync
+  useEffect(() => {
+    const initAuth = async () => {
+      await signInAnonymously(auth);
+    };
+    initAuth();
+
+    return onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        const profileRef = doc(db, 'artifacts', appId, 'users', u.uid, 'profile', 'data');
+        onSnapshot(profileRef, (snap) => {
+          if (snap.exists()) {
+            setProfile(snap.data());
+          } else {
+            const myNewCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const newProfile = {
+              uid: u.uid,
+              points: 10, // رصيد البداية
+              subsDone: 0,
+              referralCode: myNewCode,
+              referralCount: 0,
+              hasUsedCode: false,
+              channelUrl: '',
+              channelTitle: '',
+              timestamp: Date.now()
+            };
+            setDoc(profileRef, newProfile);
+            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registry'), { [myNewCode]: u.uid }, { merge: true });
+          }
+        });
+      }
+    });
+  }, []);
+
+  // 2. Fetch Channels
+  useEffect(() => {
+    if (!user || activeTab !== 'earn') return;
+    const fetchChannels = async () => {
+      setLoading(true);
+      try {
+        const q = collection(db, 'artifacts', appId, 'public', 'data', 'channels');
+        const snap = await getDocs(q);
+        const list = snap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(c => c.uid !== user.uid);
+        setChannels(list);
+      } catch (err) { console.error(err); }
+      setLoading(false);
+    };
+    fetchChannels();
+  }, [activeTab, earnSubTab, user]);
+
+  const showToast = (text, type = 'success') => {
+    setMessage({ text, type });
+    setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+  };
+
+  // 3. Subscription Action (1 Point)
+  const handleSubscribe = (targetChannel) => {
+    window.open(targetChannel.url, '_blank');
+    setTimeout(async () => {
+      const userRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+      await updateDoc(userRef, {
+        points: increment(1),
+        subsDone: increment(1)
+      });
+      showToast('تمت إضافة 1 نقطة لرصيدك!', 'success');
+    }, 3000);
+  };
+
+  // 4. Add Channel (Cost: 50 points)
+  const handleAddChannel = async (e) => {
+    e.preventDefault();
+    const url = e.target.url.value;
+    const title = e.target.title.value;
+
+    if (profile.points < 50) {
+      showToast('تحتاج إلى 50 نقطة على الأقل لإضافة قناتك', 'error');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data');
+      await updateDoc(userRef, { 
+        points: increment(-50),
+        channelUrl: url,
+        channelTitle: title
+      });
+      await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'channels', user.uid), {
+        uid: user.uid, url, title, timestamp: Date.now()
+      });
+      showToast('تمت إضافة قناتك بنجاح!', 'success');
+      setActiveTab('home');
+    } catch (err) { showToast('حدث خطأ', 'error'); }
+  };
+
+  // 5. Referral System
+  const submitReferral = async (e) => {
+    e.preventDefault();
+    const code = e.target.refcode.value.trim().toUpperCase();
+    if (code === profile.referralCode) {
+      showToast('لا يمكنك استخدام كودك الخاص!', 'error');
+      return;
+    }
+    
+    try {
+      const regSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registry'));
+      const targetUid = regSnap.data()?.[code];
+      
+      if (targetUid) {
+        // مكافأة الشخص الذي كتب الكود (عشوائي من 1 لـ 5)
+        const randomBonus = Math.floor(Math.random() * 5) + 1;
+        
+        // مكافأة صاحب الكود الأصلي (نقطتان ثابتتان)
+        await updateDoc(doc(db, 'artifacts', appId, 'users', targetUid, 'profile', 'data'), {
+          points: increment(2),
+          referralCount: increment(1)
+        });
+
+        // تحديث حالة المستخدم الحالي (الذي أدخل الكود)
+        await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'data'), {
+          points: increment(randomBonus),
+          hasUsedCode: true
+        });
+        
+        showToast(`تم التفعيل! ربحت ${randomBonus} نقاط، وحصل صاحب الكود على 2 نقطة.`, 'success');
+      } else {
+        showToast('الكود غير موجود', 'error');
+      }
+    } catch (e) { showToast('خطأ في الاتصال', 'error'); }
+  };
+
+  if (!user || !profile) return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-white">جاري التحميل...</div>;
+
+  return (
+    <div className="min-h-screen bg-[#0b0e14] text-slate-100 font-['Cairo'] pb-24 select-none" dir="rtl">
+      
+      {/* Toast */}
+      {message.text && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-full ${message.type === 'error' ? 'bg-red-500' : 'bg-indigo-600'}`}>
+          <span className="font-bold text-sm">{message.text}</span>
+        </div>
+      )}
+
+      {/* Header */}
+      <header className="p-5 flex justify-between items-center border-b border-white/5 sticky top-0 bg-[#0b0e14]/90 backdrop-blur-xl z-40">
+        <h1 className="text-xl font-black flex items-center gap-2">
+          <Youtube className="text-red-500" /> تبادل <span className="text-red-500">PRO</span>
+        </h1>
+        <div className="bg-white/5 px-4 py-2 rounded-2xl flex items-center gap-2 border border-white/10">
+          <Coins className="text-yellow-500" size={18} />
+          <span className="font-black text-yellow-500">{profile.points}</span>
+        </div>
+      </header>
+
+      <main className="p-5 max-w-xl mx-auto">
+        
+        {/* الصفحة الرئيسية */}
+        {activeTab === 'home' && (
+          <div className="space-y-5">
+            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+               <div className="relative z-10">
+                  <h2 className="text-2xl font-black mb-1">لوحة التحكم</h2>
+                  <p className="text-indigo-100 text-xs opacity-80">اجمع النقاط لزيادة عدد مشتركيك الحقيقيين.</p>
+               </div>
+               <Trophy className="absolute -bottom-4 -left-4 text-white/10 w-32 h-32 rotate-12" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 p-6 rounded-3xl border border-white/10 text-center">
+                <p className="text-slate-500 text-[10px] font-bold uppercase mb-1">نقاطك</p>
+                <p className="text-3xl font-black text-white">{profile.points}</p>
+              </div>
+              <div className="bg-white/5 p-6 rounded-3xl border border-white/10 text-center">
+                <p className="text-slate-500 text-[10px] font-bold uppercase mb-1">اشتراكات قمت بها</p>
+                <p className="text-3xl font-black text-white">{profile.subsDone}</p>
+              </div>
+            </div>
+
+            {profile.channelUrl ? (
+              <div className="bg-green-500/5 p-6 rounded-3xl border border-green-500/20">
+                <p className="text-green-500 text-xs font-bold mb-2 flex items-center gap-1">
+                  <CheckCircle2 size={14} /> قناتك تظهر الآن للآخرين
+                </p>
+                <h3 className="font-bold text-lg truncate">{profile.channelTitle}</h3>
+                <button onClick={() => setActiveTab('add')} className="text-xs text-slate-500 mt-2 underline">تعديل البيانات</button>
+              </div>
+            ) : (
+              <div onClick={() => setActiveTab('add')} className="bg-white/5 p-8 rounded-3xl border border-dashed border-white/10 text-center cursor-pointer hover:bg-white/10 transition-all">
+                <PlusCircle className="mx-auto text-slate-600 mb-2" />
+                <p className="text-slate-400 font-bold">أضف قناتك لبدء استقبال المشتركين</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* صفحة تجميع النقاط */}
+        {activeTab === 'earn' && (
+          <div className="space-y-5">
+            <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+              <button onClick={() => setEarnSubTab('yt')} className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${earnSubTab === 'yt' ? 'bg-red-600 text-white' : 'text-slate-500'}`}>اشتراكات يوتيوب</button>
+              <button onClick={() => setEarnSubTab('offers')} className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${earnSubTab === 'offers' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>عروض ومكافآت</button>
+            </div>
+
+            {earnSubTab === 'yt' ? (
+              <div className="space-y-4">
+                {loading ? <div className="text-center py-20 text-slate-500">جاري التحميل...</div> : channels.length > 0 ? (
+                  channels.map(c => (
+                    <div key={c.id} className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-red-600/20 rounded-full flex items-center justify-center text-red-500"><Youtube size={20}/></div>
+                        <h4 className="font-bold text-sm truncate max-w-[120px]">{c.title}</h4>
+                      </div>
+                      <button onClick={() => handleSubscribe(c)} className="bg-red-600 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-90 transition-transform">اشتراك +1</button>
+                    </div>
+                  ))
+                ) : <div className="text-center py-20 text-slate-500">لا توجد قنوات حالياً</div>}
+              </div>
+            ) : (
+              <div className="h-[500px] w-full bg-white/5 rounded-3xl overflow-hidden border border-white/10 shadow-inner">
+                <iframe src="https://bestreward.eu/iframe/077e192c-ce0b-11f0-9717-c2a106037d45" className="w-full h-full border-none" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* صفحة الإحالة */}
+        {activeTab === 'referral' && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-indigo-600/20 rounded-3xl mx-auto flex items-center justify-center text-indigo-500 mb-4 rotate-3">
+                <Share2 size={32} />
+              </div>
+              <h2 className="text-2xl font-black">نظام الإحالة</h2>
+              <p className="text-slate-500 text-xs">اربح 2 نقطة عن كل صديق يقوم بإدخال كودك.</p>
+            </div>
+
+            <div className="bg-white/5 p-6 rounded-3xl border border-white/10 text-center space-y-3">
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">كود الإحالة الخاص بك</p>
+              <div className="text-3xl font-mono font-black text-indigo-400 tracking-[5px]">{profile.referralCode}</div>
+              <button 
+                onClick={() => {navigator.clipboard.writeText(profile.referralCode); showToast("تم النسخ!")}}
+                className="text-xs text-indigo-300 font-bold bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-500/20"
+              >نسخ الكود</button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/5 p-4 rounded-2xl text-center">
+                <p className="text-slate-500 text-[10px] font-bold uppercase mb-1">إجمالي الإحالات</p>
+                <p className="text-2xl font-black">{profile.referralCount}</p>
+              </div>
+              <div className="bg-white/5 p-4 rounded-2xl text-center">
+                <p className="text-slate-500 text-[10px] font-bold uppercase mb-1">نقاط الربح</p>
+                <p className="text-2xl font-black text-green-500">{profile.referralCount * 2}</p>
+              </div>
+            </div>
+
+            {!profile.hasUsedCode ? (
+              <form onSubmit={submitReferral} className="bg-white/5 p-6 rounded-3xl border border-white/10 space-y-4">
+                <h3 className="font-bold text-sm flex items-center gap-2"><Gift size={18} className="text-pink-500"/> هل دعاك صديق؟</h3>
+                <input name="refcode" required placeholder="ضع الكود هنا واربح حتى 5 نقاط" className="w-full bg-black/40 border border-white/10 p-4 rounded-2xl text-center font-mono uppercase focus:ring-2 ring-indigo-500 outline-none transition-all" />
+                <button type="submit" className="w-full bg-indigo-600 py-4 rounded-2xl font-bold active:scale-95 transition-transform">تفعيل الكود</button>
+              </form>
+            ) : (
+              <div className="bg-green-500/5 p-6 rounded-3xl border border-green-500/20 text-center">
+                <p className="text-green-500 font-bold">✅ لقد استخدمت كود إحالة سابقاً</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* صفحة إضافة القناة */}
+        {activeTab === 'add' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-black">إضافة قناتك</h2>
+            <div className="bg-yellow-500/5 border border-yellow-500/20 p-4 rounded-2xl flex items-start gap-3">
+              <AlertCircle className="text-yellow-500 shrink-0 mt-1" size={18} />
+              <p className="text-[10px] text-yellow-200/60 leading-relaxed">ستكلفك إضافة القناة 50 نقطة لتظهر في قائمة التبادل.</p>
+            </div>
+
+            <form onSubmit={handleAddChannel} className="space-y-4">
+               <div>
+                  <label className="text-[10px] font-bold text-slate-500 mr-2 uppercase">اسم القناة</label>
+                  <input name="title" required placeholder="مثال: قناة المحترف" defaultValue={profile.channelTitle} className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:ring-2 ring-red-500 outline-none transition-all" />
+               </div>
+               <div>
+                  <label className="text-[10px] font-bold text-slate-500 mr-2 uppercase">رابط القناة (URL)</label>
+                  <input name="url" type="url" required placeholder="https://youtube.com/@username" defaultValue={profile.channelUrl} className="w-full bg-white/5 border border-white/10 p-4 rounded-2xl focus:ring-2 ring-red-500 outline-none transition-all" />
+               </div>
+               <button type="submit" disabled={profile.points < 50} className={`w-full py-4 rounded-2xl font-bold transition-all active:scale-95 ${profile.points >= 50 ? 'bg-red-600 shadow-xl shadow-red-900/20' : 'bg-white/5 text-slate-600'}`}>تفعيل الظهور (50 نقطة)</button>
+            </form>
+          </div>
+        )}
+
+      </main>
+
+      {/* Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-[#0b0e14]/90 backdrop-blur-2xl border-t border-white/5 h-20 flex items-center justify-around px-2 z-50">
+        <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'home' ? 'text-red-500 scale-110' : 'text-slate-600'}`}>
+          <Layout size={20} /><span className="text-[8px] font-bold">الرئيسية</span>
+        </button>
+        <button onClick={() => setActiveTab('earn')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'earn' ? 'text-red-500 scale-110' : 'text-slate-600'}`}>
+          <Coins size={20} /><span className="text-[8px] font-bold">اجمع نقاط</span>
+        </button>
+        <button onClick={() => setActiveTab('add')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'add' ? 'text-red-500 scale-110' : 'text-slate-600'}`}>
+          <PlusCircle size={20} /><span className="text-[8px] font-bold">أضف قناتك</span>
+        </button>
+        <button onClick={() => setActiveTab('referral')} className={`flex flex-col items-center gap-1 transition-all ${activeTab === 'referral' ? 'text-indigo-500 scale-110' : 'text-slate-600'}`}>
+          <UserPlus size={20} /><span className="text-[8px] font-bold">الإحالة</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
